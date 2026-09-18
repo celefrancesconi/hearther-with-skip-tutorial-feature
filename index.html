@@ -4,13 +4,10 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>hearther · lighter prototype</title>
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" type="image/png" sizes="512x512" href="icon.png">
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<meta name="theme-color" content="#f2d8d2">
+<meta name="theme-color" content="#fffaf8">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="hearther">
 <style>
 :root{--paper:#fffaf8;--ink:#4d3735;--muted:#947773;--line:#ecd9d5;--rose:#a85f63;--rose2:#f2d7d3;--soft:#fbf1ef}
 *{box-sizing:border-box} body{margin:0;background:#efe8e5;font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink)}
@@ -38,7 +35,7 @@ section{animation:pageIn .28s ease both}
 .nav-badge{position:absolute;top:2px;right:9px;min-width:22px;height:22px;padding:0 5px;border-radius:999px;background:#d96d73;color:#fff;border:2px solid #fff;display:none;align-items:center;justify-content:center;font-size:10px;font-weight:900;line-height:1;box-shadow:0 3px 10px rgba(168,95,99,.28);z-index:4}
 .nav-badge.show{display:flex;animation:badgePop .32s cubic-bezier(.2,.8,.2,1)}
 @keyframes badgePop{0%{transform:scale(.45);opacity:0}70%{transform:scale(1.18);opacity:1}100%{transform:scale(1);opacity:1}}
-.tourcard{z-index:110}.tourmask{background:rgba(77,55,53,.18);backdrop-filter:blur(1.5px)}
+.tourcard{z-index:110}.tourmask{background:rgba(77,55,53,.18);backdrop-filter:blur(1.5px)}.tour-skip-fixed{position:absolute;top:18px;right:16px;z-index:120;pointer-events:auto;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:9px 13px;font:inherit;font-size:12px;font-weight:800;box-shadow:0 8px 24px rgba(61,39,36,.14);cursor:pointer}
 
 /* Instagram-like heart feedback */
 .heart-pop{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%) scale(.25);font-size:96px;z-index:9999;pointer-events:none;opacity:0;filter:drop-shadow(0 10px 22px rgba(168,95,99,.22))}
@@ -121,7 +118,7 @@ section{animation:pageIn .28s ease both}
 </main>
 <div id="heartPop" class="heart-pop">♥</div><nav class="bottom hidden" id="bottom"><button class="nav" id="navHome" data-tab="home" onclick="nav('home',this)"><span class="nicon">⌂</span><span>Home</span></button><button class="nav" id="navJournal" data-tab="journal" onclick="nav('journal',this)"><span class="nicon">✎</span><span>Journal</span></button><button class="nav support" id="navSupport" data-tab="support" onclick="nav('support',this)"><span class="nicon">♡</span><span>Support</span></button><button class="nav" id="navChat" data-tab="chatlist" onclick="nav('chatlist',this)"><span class="nicon">💬</span><span>Chat</span></button><button class="nav" id="navProgress" data-tab="progress" onclick="nav('progress',this)"><span class="nicon">↗</span><span>Progress</span></button></nav>
 <div class="overlay hidden" id="ai"><div class="sheet"><h1>Before we start ♡</h1><p class="lead">Just a few things so hearther can make your support feel more relevant.</p><div class="ai-bubble" id="aiQ"></div><div id="aiAnswers"></div><button class="btn full" onclick="nextAI()">Continue</button></div></div>
-<div class="tourmask hidden" id="tour"><div class="tourcard"><b id="tourTitle"></b><small id="tourText"></small><div class="tour-actions"><span class="tiny" id="tourNum"></span><button class="btn" onclick="nextTour()">Next</button></div></div></div>
+<div class="tourmask hidden" id="tour"><button class="tour-skip-fixed" onclick="skipTour()">Skip tutorial ✕</button><div class="tourcard"><b id="tourTitle"></b><small id="tourText"></small><div class="tour-actions"><button class="btn ghost" onclick="skipTour()">Skip tutorial</button><span class="tiny" id="tourNum"></span><button class="btn" onclick="nextTour()">Next</button></div></div></div>
 </div>
 <script>
 const pages=['login','welcome','mood','talkGate','challenges','support','individuals','chat','communities','community','specialists','booking','home','journal','chatlist','progress'];
@@ -260,6 +257,15 @@ function renderTour(){
   document.getElementById('tourNum').textContent=`${tourI+1} / ${tourSteps.length}`;
   requestAnimationFrame(()=>{const el=document.getElementById(s.target);if(el){el.classList.add('spot');try{el.scrollIntoView({behavior:'smooth',block:'center'})}catch(e){}}});
 }
+function skipTour(){
+  document.querySelectorAll('.spot').forEach(x=>x.classList.remove('spot'));
+  tourActive=false;
+  chatted.clear();
+  document.getElementById('tour').classList.add('hidden');
+  document.getElementById('bottom').classList.add('hidden');
+  show('mood');
+  updateProgressBadge();
+}
 function nextTour(){
   document.querySelectorAll('.spot').forEach(x=>x.classList.remove('spot'));
   tourI++;
@@ -272,4 +278,7 @@ function toast(t){const d=document.createElement('div');d.textContent=t;d.style=
 profile.name='';profile.recent='';profile.hard='';profile.support='';profile.interests=[];friends.clear();events=0;appointment=null;progressNotifications=0;chatted.clear();
 document.getElementById('sliders').innerHTML=emotions.map(e=>`<div class="slider"><div class="ends"><span>${e[1]}</span><span>${e[2]}</span></div><input id="${e[0]}" type="range" min="0" max="100" value="50"></div>`).join('');
 setTimeout(()=>{document.getElementById('intro').classList.add('hide');setTimeout(()=>{document.getElementById('intro').remove();show('login');const inp=document.getElementById('loginName');if(inp)inp.value='';updateProgressBadge()},500)},1500);
-</script></body></html>
+</script><script>
+if ('serviceWorker' in navigator) { window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{})); }
+</script>
+</body></html>
